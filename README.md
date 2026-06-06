@@ -43,12 +43,12 @@ cancer_api/
 pip install -r requirements.txt --user
 ```
 
-### 2. Place your models
+### 2. Models are already placed
 ```
 models/
-  lung_cancer_model.h5
-  skin_cancer_model.h5
-  breast_cancer_model.h5
+  breast_cancer_model_gradcam.keras
+  lung_cancer_model_gradcam.keras
+  skin_cancer_b3_v3.keras
 ```
 
 ### 3. Configure
