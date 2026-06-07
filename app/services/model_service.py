@@ -68,6 +68,16 @@ class ModelService:
         self._models: dict = {}
 
     # ── Lifecycle ──────────────────────────────────────────────
+    # ── Internal single-model loader ───────────────────────────
+    def _load_one(self, cancer_type: str):
+        path = getattr(settings, f"{cancer_type.upper()}_MODEL_PATH")
+        if not Path(path).exists():
+            raise ValueError(f"{cancer_type} model not found at {path}")
+        custom_objects = _SKIN_CUSTOM_OBJECTS if cancer_type == "skin" else None
+        self._models[cancer_type] = tf.keras.models.load_model(
+            path, custom_objects=custom_objects
+        )
+
     def load_all_models(self):
         for cancer_type in ["lung", "skin", "breast"]:
             path = getattr(settings, f"{cancer_type.upper()}_MODEL_PATH")
@@ -96,10 +106,10 @@ class ModelService:
     def get_model(self, cancer_type: str) -> tf.keras.Model:
         model = self._models.get(cancer_type)
         if model is None:
-            raise ValueError(
-                f"Model '{cancer_type}' not loaded. "
-                f"Loaded models: {self.loaded_models()}"
-            )
+            # Lazy load on first use — keeps idle RAM low (one model at a time).
+            print(f"   Lazy-loading {cancer_type} model...")
+            self._load_one(cancer_type)
+            model = self._models[cancer_type]
         return model
 
     def get_classes(self, cancer_type: str) -> list[str]:
