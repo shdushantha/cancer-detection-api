@@ -1,17 +1,25 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
+import os
 import uvicorn
 
 from app.routers import predict, gradcam, embeddings, uncertainty, metrics, full_analysis
 from app.services.model_service import model_service
 
+# EAGER_LOAD=1  → load all 3 models at startup (~1GB RAM; needs HF Spaces / >=2GB).
+# EAGER_LOAD=0  → lazy-load each model on first request (low idle RAM; fits 512MB tiers).
+EAGER_LOAD = os.getenv("EAGER_LOAD", "1") == "1"
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Load all models on startup, release on shutdown."""
-    print("🚀 Loading cancer detection models...")
-    model_service.load_all_models()
-    print("✅ All models loaded and ready.")
+    """Optionally load models on startup; always release on shutdown."""
+    if EAGER_LOAD:
+        print("🚀 Eager-loading all cancer detection models...")
+        model_service.load_all_models()
+        print("✅ All models loaded and ready.")
+    else:
+        print("💤 Lazy mode — models load on first request.")
     yield
     print("🛑 Shutting down — releasing models.")
     model_service.unload_all_models()
