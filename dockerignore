@@ -1,0 +1,24 @@
+# Version control
+.git
+.gitignore
+
+# IDE
+.idea
+.vscode
+
+# Python caches
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+*.egg-info
+.pytest_cache
+.mypy_cache
+
+# Local env / secrets (provide these via platform env vars instead)
+.env
+
+# Misc
+*.md
+tests
+metrics
